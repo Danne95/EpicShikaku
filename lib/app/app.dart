@@ -1,27 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shikaku_puzzle/app/application/settings_controller.dart';
+import 'package:shikaku_puzzle/app/data/settings_repository.dart';
+import 'package:shikaku_puzzle/app/presentation/app_shell.dart';
 import 'package:shikaku_puzzle/app/theme/app_theme.dart';
 import 'package:shikaku_puzzle/features/puzzle/application/puzzle_controller.dart';
-import 'package:shikaku_puzzle/features/puzzle/data/asset_puzzle_repository.dart';
+import 'package:shikaku_puzzle/features/puzzle/data/generated_puzzle_repository.dart';
 import 'package:shikaku_puzzle/features/puzzle/domain/puzzle_validator.dart';
-import 'package:shikaku_puzzle/features/puzzle/presentation/puzzle_screen.dart';
 
-/// Root widget for the Shikaku Puzzle application.
+/// Root widget for the EpicShikaku application.
 class ShikakuPuzzleApp extends StatelessWidget {
   /// Creates the application shell.
-  const ShikakuPuzzleApp({super.key});
+  const ShikakuPuzzleApp({this.settingsController, super.key});
+
+  /// Preloaded app settings used during normal application startup.
+  final SettingsController? settingsController;
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PuzzleController(
-        repository: const AssetPuzzleRepository(),
-        validator: const PuzzleValidator(),
-      )..loadDefaultPuzzle(),
-      child: MaterialApp(
-        title: 'Shikaku Puzzle',
-        theme: AppTheme.light(),
-        home: const PuzzleScreen(),
+    return MultiProvider(
+      providers: [
+        if (settingsController == null)
+          ChangeNotifierProvider(
+            create: (_) =>
+                SettingsController(repository: const SettingsRepository())
+                  ..loadSettings(),
+          )
+        else
+          ChangeNotifierProvider<SettingsController>.value(
+            value: settingsController!,
+          ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final settings = context.read<SettingsController>();
+
+            return PuzzleController(
+              repository: GeneratedPuzzleRepository(),
+              validator: const PuzzleValidator(),
+            )..loadDefaultPuzzle(boardSize: settings.boardSize);
+          },
+        ),
+      ],
+      child: Consumer<SettingsController>(
+        builder: (context, settings, child) {
+          return MaterialApp(
+            title: 'EpicShikaku',
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: settings.isDarkModeEnabled
+                ? ThemeMode.dark
+                : ThemeMode.light,
+            home: const AppShell(),
+          );
+        },
       ),
     );
   }

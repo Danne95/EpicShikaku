@@ -2,26 +2,25 @@
 
 ## Phase 1
 
-- Static puzzles
-- Playable game
-- JSON puzzle loading
-- Rectangle selection
-- Validation
-- Completion dialog
-- Unit tests
+- Playable generated puzzles
+- Rectangle selection, validation, and region removal
+- Completion confetti and quick New puzzle action
+- Settings screen with theme, vibration, and board-size controls
+- Local settings persistence
+- Unit and widget tests
 
 ## Phase 2
 
 - Puzzle packs
+- Curated JSON puzzle selection
 - Statistics
 - Progress tracking
-- Basic settings
 
 ## Phase 3
 
-- Puzzle generation
 - Difficulty tagging
-- Generated puzzle validation
+- Generated puzzle uniqueness validation
+- Generator quality tuning and seed replay
 
 ## Phase 4
 

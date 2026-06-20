@@ -8,18 +8,21 @@ import 'package:shikaku_puzzle/features/puzzle/domain/puzzle.dart';
 /// Loads puzzle definitions from bundled JSON assets.
 class AssetPuzzleRepository implements PuzzleRepository {
   /// Creates an asset-backed repository.
-  const AssetPuzzleRepository({
-    this.assetLoader = const JsonAssetLoader(),
-  });
+  const AssetPuzzleRepository({this.assetLoader = const JsonAssetLoader()});
 
   /// Asset loader used to read bundled JSON files.
   final JsonAssetLoader assetLoader;
 
   @override
-  Future<Puzzle> loadDefaultPuzzle() async {
+  Future<Puzzle> loadDefaultPuzzle({required int boardSize}) async {
     final jsonText = await assetLoader.loadString(PuzzleAssetPaths.sample5x5);
     final jsonMap = Map<String, Object?>.from(jsonDecode(jsonText) as Map);
 
     return Puzzle.fromJson(jsonMap);
+  }
+
+  @override
+  Future<Puzzle> loadNewPuzzle({required int boardSize}) {
+    return loadDefaultPuzzle(boardSize: boardSize);
   }
 }

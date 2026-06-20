@@ -1,6 +1,8 @@
-# Shikaku Puzzle
+# EpicShikaku
 
-Shikaku Puzzle is a fully offline Flutter application for playing Shikaku logic puzzles on Android.
+EpicShikaku is a fully offline Flutter application for playing Shikaku logic puzzles on Android.
+
+Current version: `1.0.0`
 
 ## Requirements
 
@@ -31,11 +33,12 @@ flutter build apk --release
 - `lib/app` contains the app shell and Material 3 theme.
 - `lib/core` contains shared models, services, utilities, and constants.
 - `lib/features/puzzle` contains the puzzle feature split into domain, application, presentation, and data layers.
-- `assets/puzzles` contains JSON puzzle definitions.
+- `assets/puzzles` contains JSON puzzle definitions for future curated packs.
+- New games currently use an offline rectangle-partition generator.
 - `docs` contains architecture, decisions, game rules, user flows, roadmap, and AI-agent context.
 
 ## GitHub Releases
 
-`.github/workflows/android_release.yml` builds a release APK on pushes to `main` and uploads it as a workflow artifact.
+The Android workflow is currently disabled at `.github/workflows/android_release.yml.disabled`. Rename it to `android_release.yml` when automated APK builds are needed again.
 
 To publish GitHub Releases later, extend the workflow by adding release creation after the APK build. Common options are `softprops/action-gh-release` for tag-triggered releases or the GitHub CLI for scripted release notes.

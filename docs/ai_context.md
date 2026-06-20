@@ -9,11 +9,14 @@ Build a production-quality, offline Android-first Flutter game for Shikaku puzzl
 The app uses layered feature architecture:
 
 - `lib/app`: app shell and theme.
+- `lib/app/application`: app-level controllers such as settings.
+- `lib/app/data`: app-level persistence such as settings storage.
 - `lib/core`: shared models, services, utilities, and constants.
 - `lib/features/puzzle/domain`: puzzle data types and rules.
 - `lib/features/puzzle/application`: game state controller.
 - `lib/features/puzzle/presentation`: Flutter UI.
-- `lib/features/puzzle/data`: asset-backed puzzle loading.
+- `lib/features/puzzle/data`: generated and asset-backed puzzle loading.
+- `lib/features/settings/presentation`: settings UI.
 
 Dependency direction is `presentation -> application -> domain` and `data -> domain`. Keep domain logic independent from Flutter widgets.
 
@@ -23,6 +26,8 @@ Dependency direction is `presentation -> application -> domain` and `data -> dom
 - Add documentation comments to every public class.
 - Keep methods short and named after behavior.
 - Put puzzle rules in domain services, not widgets.
+- Keep app-wide settings in `SettingsController`, not feature-specific controllers.
+- Keep puzzle board palettes in PuzzleUiConstants using explicit board color schemes.
 - Use constants instead of unexplained literals.
 - Prefer immutable value objects in the domain layer.
 
@@ -34,11 +39,24 @@ Dependency direction is `presentation -> application -> domain` and `data -> dom
 - Use `PuzzleRegion` for an accepted rectangular region.
 - Use `PuzzleController` for state used by the UI.
 - Use `PuzzleValidator` for rule validation.
+- Use `PuzzleGenerator` to create locally solvable boards from rectangle partitions.
+- Use `GeneratedPuzzleRepository` for the current gameplay source; keep `AssetPuzzleRepository` for future curated packs.
+- Use `SettingsController` for theme and vibration preferences.
+- Use `SettingsController.boardSize` for the selected square generated-board size.
+- Settings are opened from the app bar cog, not bottom navigation.
+- Tapping an accepted puzzle region removes that region.
+- Light mode uses black clue text with a light region palette.
+- Dark mode uses white clue text with a darker region palette.
+- Generated boards currently support square sizes from 4 to 12.
+- Generated clue areas must stay between 2 and 12, and clue placement should prefer non-adjacent cells.
+- Completion uses an in-screen confetti effect and a New puzzle button, not a modal dialog.
+- Accepted regions are outlined over the cell grid to distinguish adjacent groups with matching fill colors.
 
 ## Things To Avoid
 
 - Do not add backend, cloud services, ads, analytics, or network dependencies.
 - Do not put validation rules in UI widgets.
 - Do not introduce complex state management without a documented reason.
+- Do not add network-backed settings or accounts.
 - Do not create large files that mix unrelated responsibilities.
-- Do not make generated puzzles before static puzzle gameplay is solid.
+- Do not add server-side puzzle generation, network dependencies, or a completion modal.

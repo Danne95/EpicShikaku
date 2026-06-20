@@ -12,11 +12,6 @@ class RectangleMath {
     final top = start.y < end.y ? start.y : end.y;
     final bottom = start.y > end.y ? start.y : end.y;
 
-    return PuzzleRegion(
-      left: left,
-      top: top,
-      right: right,
-      bottom: bottom,
-    );
+    return PuzzleRegion(left: left, top: top, right: right, bottom: bottom);
   }
 }

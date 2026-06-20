@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shikaku_puzzle/app/application/settings_controller.dart';
+import 'package:shikaku_puzzle/core/models/cell_position.dart';
+import 'package:shikaku_puzzle/core/services/vibration_service.dart';
 import 'package:shikaku_puzzle/features/puzzle/application/puzzle_controller.dart';
+import 'package:shikaku_puzzle/features/puzzle/domain/puzzle_region.dart';
+import 'package:shikaku_puzzle/features/puzzle/domain/puzzle_validation_result.dart';
+import 'package:shikaku_puzzle/features/puzzle/presentation/widgets/completion_confetti.dart';
 import 'package:shikaku_puzzle/features/puzzle/presentation/widgets/puzzle_board.dart';
 
 /// Main screen for playing a Shikaku puzzle.
@@ -12,32 +18,35 @@ class PuzzleScreen extends StatefulWidget {
   State<PuzzleScreen> createState() => _PuzzleScreenState();
 }
 
-class _PuzzleScreenState extends State<PuzzleScreen> {
-  bool _completionDialogShown = false;
+class _PuzzleScreenState extends State<PuzzleScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _confettiController;
+  bool _completionHandled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    );
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<PuzzleController>(
       builder: (context, controller, child) {
-        _showCompletionDialogIfNeeded(context, controller);
+        _handleCompletionState(controller);
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Shikaku Puzzle'),
-            actions: [
-              IconButton(
-                tooltip: 'Reset puzzle',
-                onPressed: controller.resetProgress,
-                icon: const Icon(Icons.refresh),
-              ),
-            ],
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: _buildBody(controller),
-            ),
-          ),
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: _buildBody(controller),
         );
       },
     );
@@ -58,22 +67,44 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     return Column(
       children: [
         Expanded(
-          child: Center(
-            child: PuzzleBoard(
-              puzzle: puzzle,
-              acceptedRegions: controller.acceptedRegions,
-              currentSelection: controller.currentSelection,
-              onSelectionChanged: controller.updateCurrentSelection,
-              onSelectionSubmitted: controller.submitRegion,
-            ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: PuzzleBoard(
+                  puzzle: puzzle,
+                  acceptedRegions: controller.acceptedRegions,
+                  currentSelection: controller.currentSelection,
+                  onSelectionChanged: controller.updateCurrentSelection,
+                  onSelectionSubmitted: _submitRegion,
+                  onAcceptedRegionPressed: _removeAcceptedRegion,
+                ),
+              ),
+              if (controller.isComplete)
+                CompletionConfetti(animation: _confettiController),
+            ],
           ),
         ),
+        if (controller.isComplete) ...[
+          const SizedBox(height: 12),
+          Text(
+            'Puzzle complete',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          FilledButton.icon(
+            onPressed: _loadNewPuzzle,
+            icon: const Icon(Icons.refresh),
+            label: const Text('New puzzle'),
+          ),
+        ],
         const SizedBox(height: 16),
         SizedBox(
           height: 40,
           child: Center(
             child: Text(
-              controller.lastErrorMessage ?? 'Drag across cells to create rectangles.',
+              controller.lastErrorMessage ??
+                  'Drag to create rectangles. Tap a completed region to remove it.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -82,39 +113,58 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     );
   }
 
-  void _showCompletionDialogIfNeeded(
-    BuildContext context,
-    PuzzleController controller,
-  ) {
-    if (!controller.isComplete) {
-      _completionDialogShown = false;
+  PuzzleValidationResult _submitRegion(PuzzleRegion region) {
+    final controller = context.read<PuzzleController>();
+    final settings = context.read<SettingsController>();
+    final result = controller.submitRegion(region);
+
+    if (settings.isVibrationEnabled && result.isValid) {
+      VibrationService.vibrateMove();
     }
 
-    if (!controller.isComplete || _completionDialogShown) {
+    return result;
+  }
+
+  bool _removeAcceptedRegion(CellPosition position) {
+    final controller = context.read<PuzzleController>();
+    final settings = context.read<SettingsController>();
+    final wasRemoved = controller.removeRegionAt(position);
+
+    if (settings.isVibrationEnabled && wasRemoved) {
+      VibrationService.vibrateMove();
+    }
+
+    return wasRemoved;
+  }
+
+  void _loadNewPuzzle() {
+    final settings = context.read<SettingsController>();
+    context.read<PuzzleController>().loadNewPuzzle(
+      boardSize: settings.boardSize,
+    );
+  }
+
+  void _handleCompletionState(PuzzleController controller) {
+    if (!controller.isComplete) {
+      _completionHandled = false;
       return;
     }
 
-    _completionDialogShown = true;
+    if (_completionHandled) {
+      return;
+    }
+
+    _completionHandled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
 
-      showDialog<void>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Puzzle complete'),
-            content: const Text('Every cell is covered by a valid rectangle.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Done'),
-              ),
-            ],
-          );
-        },
-      );
+      final settings = context.read<SettingsController>();
+      if (settings.isVibrationEnabled) {
+        VibrationService.vibrateWin();
+      }
+      _confettiController.forward(from: 0);
     });
   }
 }

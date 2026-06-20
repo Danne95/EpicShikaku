@@ -15,6 +15,7 @@ class PuzzleBoard extends StatefulWidget {
     required this.currentSelection,
     required this.onSelectionChanged,
     required this.onSelectionSubmitted,
+    required this.onAcceptedRegionPressed,
     super.key,
   });
 
@@ -31,7 +32,11 @@ class PuzzleBoard extends StatefulWidget {
   final ValueChanged<PuzzleRegion?> onSelectionChanged;
 
   /// Called when drag selection is released.
-  final PuzzleValidationResult Function(PuzzleRegion region) onSelectionSubmitted;
+  final PuzzleValidationResult Function(PuzzleRegion region)
+  onSelectionSubmitted;
+
+  /// Called when the player presses an already accepted region.
+  final bool Function(CellPosition position) onAcceptedRegionPressed;
 
   @override
   State<PuzzleBoard> createState() => _PuzzleBoardState();
@@ -46,8 +51,12 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
       builder: (context, constraints) {
         final boardSize = _boardSizeFor(constraints);
         final cellSize = boardSize / widget.puzzle.width;
+        final boardColorScheme = PuzzleUiConstants.colorSchemeFor(
+          Theme.of(context).brightness,
+        );
 
         return GestureDetector(
+          onTapUp: (details) => _handleTapUp(details, cellSize),
           onPanStart: (details) => _handlePanStart(details, cellSize),
           onPanUpdate: (details) => _handlePanUpdate(details, cellSize),
           onPanEnd: (_) => _handlePanEnd(),
@@ -67,9 +76,20 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
                     puzzle: widget.puzzle,
                     acceptedRegions: widget.acceptedRegions,
                     currentSelection: widget.currentSelection,
+                    colorScheme: boardColorScheme,
                   ),
                   _GridLayer(puzzle: widget.puzzle),
-                  _ClueLayer(puzzle: widget.puzzle),
+                  _AcceptedRegionBorderLayer(
+                    puzzle: widget.puzzle,
+                    acceptedRegions: widget.acceptedRegions,
+                    borderColor: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.78),
+                  ),
+                  _ClueLayer(
+                    puzzle: widget.puzzle,
+                    clueColor: boardColorScheme.clueColor,
+                  ),
                 ],
               ),
             ),
@@ -97,6 +117,15 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
     widget.onSelectionChanged(RectangleMath.fromCorners(position, position));
   }
 
+  void _handleTapUp(TapUpDetails details, double cellSize) {
+    final position = _positionForOffset(details.localPosition, cellSize);
+    if (position == null || !_isAcceptedRegionPosition(position)) {
+      return;
+    }
+
+    widget.onAcceptedRegionPressed(position);
+  }
+
   void _handlePanUpdate(DragUpdateDetails details, double cellSize) {
     final start = _dragStart;
     final position = _positionForOffset(details.localPosition, cellSize);
@@ -121,6 +150,12 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
     widget.onSelectionChanged(null);
   }
 
+  bool _isAcceptedRegionPosition(CellPosition position) {
+    return widget.acceptedRegions.any(
+      (region) => region.containsPosition(position),
+    );
+  }
+
   CellPosition? _positionForOffset(Offset offset, double cellSize) {
     final x = (offset.dx / cellSize).floor();
     final y = (offset.dy / cellSize).floor();
@@ -135,11 +170,13 @@ class _RegionLayer extends StatelessWidget {
     required this.puzzle,
     required this.acceptedRegions,
     required this.currentSelection,
+    required this.colorScheme,
   });
 
   final Puzzle puzzle;
   final List<PuzzleRegion> acceptedRegions;
   final PuzzleRegion? currentSelection;
+  final PuzzleBoardColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +185,7 @@ class _RegionLayer extends StatelessWidget {
         puzzle: puzzle,
         acceptedRegions: acceptedRegions,
         currentSelection: currentSelection,
-        selectionColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.24),
+        colorScheme: colorScheme,
       ),
       size: Size.infinite,
     );
@@ -172,10 +209,35 @@ class _GridLayer extends StatelessWidget {
   }
 }
 
-class _ClueLayer extends StatelessWidget {
-  const _ClueLayer({required this.puzzle});
+class _AcceptedRegionBorderLayer extends StatelessWidget {
+  const _AcceptedRegionBorderLayer({
+    required this.puzzle,
+    required this.acceptedRegions,
+    required this.borderColor,
+  });
 
   final Puzzle puzzle;
+  final List<PuzzleRegion> acceptedRegions;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _AcceptedRegionBorderPainter(
+        puzzle: puzzle,
+        acceptedRegions: acceptedRegions,
+        borderColor: borderColor,
+      ),
+      size: Size.infinite,
+    );
+  }
+}
+
+class _ClueLayer extends StatelessWidget {
+  const _ClueLayer({required this.puzzle, required this.clueColor});
+
+  final Puzzle puzzle;
+  final Color clueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -192,10 +254,17 @@ class _ClueLayer extends StatelessWidget {
                 width: cellSize,
                 height: cellSize,
                 child: Center(
-                  child: Text(
-                    clue.value.toString(),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        clue.value.toString(),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: clueColor,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -212,27 +281,27 @@ class _RegionPainter extends CustomPainter {
     required this.puzzle,
     required this.acceptedRegions,
     required this.currentSelection,
-    required this.selectionColor,
+    required this.colorScheme,
   });
 
   final Puzzle puzzle;
   final List<PuzzleRegion> acceptedRegions;
   final PuzzleRegion? currentSelection;
-  final Color selectionColor;
+  final PuzzleBoardColorScheme colorScheme;
 
   @override
   void paint(Canvas canvas, Size size) {
     final cellSize = size.width / puzzle.width;
 
     for (var index = 0; index < acceptedRegions.length; index++) {
-      final color = PuzzleUiConstants.regionColors[
-          index % PuzzleUiConstants.regionColors.length];
+      final color =
+          colorScheme.regionColors[index % colorScheme.regionColors.length];
       _paintRegion(canvas, acceptedRegions[index], cellSize, color);
     }
 
     final selection = currentSelection;
     if (selection != null) {
-      _paintRegion(canvas, selection, cellSize, selectionColor);
+      _paintRegion(canvas, selection, cellSize, colorScheme.selectionColor);
     }
   }
 
@@ -256,7 +325,8 @@ class _RegionPainter extends CustomPainter {
   @override
   bool shouldRepaint(_RegionPainter oldDelegate) {
     return oldDelegate.acceptedRegions != acceptedRegions ||
-        oldDelegate.currentSelection != currentSelection;
+        oldDelegate.currentSelection != currentSelection ||
+        oldDelegate.colorScheme != colorScheme;
   }
 }
 
@@ -287,5 +357,43 @@ class _GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(_GridPainter oldDelegate) {
     return oldDelegate.puzzle != puzzle || oldDelegate.lineColor != lineColor;
+  }
+}
+
+class _AcceptedRegionBorderPainter extends CustomPainter {
+  const _AcceptedRegionBorderPainter({
+    required this.puzzle,
+    required this.acceptedRegions,
+    required this.borderColor,
+  });
+
+  final Puzzle puzzle;
+  final List<PuzzleRegion> acceptedRegions;
+  final Color borderColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cellSize = size.width / puzzle.width;
+    final paint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = PuzzleUiConstants.acceptedRegionBorderWidth;
+
+    for (final region in acceptedRegions) {
+      final rect = Rect.fromLTRB(
+        region.left * cellSize,
+        region.top * cellSize,
+        (region.right + 1) * cellSize,
+        (region.bottom + 1) * cellSize,
+      );
+      canvas.drawRect(rect, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_AcceptedRegionBorderPainter oldDelegate) {
+    return oldDelegate.puzzle != puzzle ||
+        oldDelegate.acceptedRegions != acceptedRegions ||
+        oldDelegate.borderColor != borderColor;
   }
 }

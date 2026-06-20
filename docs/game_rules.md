@@ -25,3 +25,5 @@ When a player selects a rectangle, it is accepted only if:
 - The rectangle does not overlap an existing accepted region.
 
 Invalid selections are rejected and do not change the board.
+
+Accepted rectangles can be removed by tapping any cell inside them. This lets the player correct a previous move.

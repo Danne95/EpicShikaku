@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:shikaku_puzzle/core/models/cell_position.dart';
+import 'package:shikaku_puzzle/core/constants/puzzle_generation_constants.dart';
 import 'package:shikaku_puzzle/features/puzzle/data/puzzle_repository.dart';
 import 'package:shikaku_puzzle/features/puzzle/domain/puzzle.dart';
 import 'package:shikaku_puzzle/features/puzzle/domain/puzzle_region.dart';
@@ -8,10 +10,7 @@ import 'package:shikaku_puzzle/features/puzzle/domain/puzzle_validator.dart';
 /// Coordinates puzzle loading, selections, validation, and completion state.
 class PuzzleController extends ChangeNotifier {
   /// Creates a puzzle controller.
-  PuzzleController({
-    required this._repository,
-    required this._validator,
-  });
+  PuzzleController({required this._repository, required this._validator});
 
   final PuzzleRepository _repository;
   final PuzzleValidator _validator;
@@ -42,13 +41,26 @@ class PuzzleController extends ChangeNotifier {
   String? get lastErrorMessage => _lastErrorMessage;
 
   /// Loads the default puzzle from the repository.
-  Future<void> loadDefaultPuzzle() async {
+  Future<void> loadDefaultPuzzle({
+    int boardSize = PuzzleGenerationConstants.defaultBoardSize,
+  }) async {
+    await _loadPuzzle(
+      () => _repository.loadDefaultPuzzle(boardSize: boardSize),
+    );
+  }
+
+  /// Loads a fresh puzzle and clears the current game progress.
+  Future<void> loadNewPuzzle({required int boardSize}) async {
+    await _loadPuzzle(() => _repository.loadNewPuzzle(boardSize: boardSize));
+  }
+
+  Future<void> _loadPuzzle(Future<Puzzle> Function() loadPuzzle) async {
     _isLoading = true;
     _lastErrorMessage = null;
     notifyListeners();
 
     try {
-      _puzzle = await _repository.loadDefaultPuzzle();
+      _puzzle = await loadPuzzle();
       _acceptedRegions.clear();
       _currentSelection = null;
       _isComplete = false;
@@ -98,6 +110,24 @@ class PuzzleController extends ChangeNotifier {
     _currentSelection = null;
     notifyListeners();
     return result;
+  }
+
+  /// Removes the accepted region containing the selected cell, if any.
+  bool removeRegionAt(CellPosition position) {
+    final regionIndex = _acceptedRegions.indexWhere(
+      (region) => region.containsPosition(position),
+    );
+
+    if (regionIndex == -1) {
+      return false;
+    }
+
+    _acceptedRegions.removeAt(regionIndex);
+    _currentSelection = null;
+    _isComplete = false;
+    _lastErrorMessage = null;
+    notifyListeners();
+    return true;
   }
 
   /// Resets progress for the current puzzle.

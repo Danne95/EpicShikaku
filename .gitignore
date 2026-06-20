@@ -7,10 +7,30 @@
 build/
 coverage/
 
+# Local IDE/editor state can contain absolute user paths.
+.idea/
+.vscode/
+*.iml
+*.iws
+
+# Local tool settings generated on this machine.
+.metadata
+devtools_options.yaml
+
 android/.gradle/
+android/.kotlin/
 android/app/debug/
 android/app/profile/
 android/app/release/
 android/local.properties
 
-*.iml
+# Generated platform folders are intentionally ignored for this Android-first app.
+ios/
+linux/
+macos/
+web/
+windows/
+
+# Operating system noise.
+.DS_Store
+Thumbs.db

@@ -55,7 +55,9 @@ class PuzzleValidator {
       final result = validateRegion(
         puzzle: puzzle,
         candidate: region,
-        acceptedRegions: acceptedRegions.where((item) => item != region).toList(),
+        acceptedRegions: acceptedRegions
+            .where((item) => item != region)
+            .toList(),
       );
 
       if (!result.isValid) {
@@ -73,8 +75,12 @@ class PuzzleValidator {
   }
 
   bool _isInsidePuzzle(Puzzle puzzle, PuzzleRegion region) {
-    return puzzle.containsPosition(CellPosition(x: region.left, y: region.top)) &&
-        puzzle.containsPosition(CellPosition(x: region.right, y: region.bottom));
+    return puzzle.containsPosition(
+          CellPosition(x: region.left, y: region.top),
+        ) &&
+        puzzle.containsPosition(
+          CellPosition(x: region.right, y: region.bottom),
+        );
   }
 
   bool _overlapsAcceptedRegion(
