@@ -38,8 +38,8 @@ flutter build apk --release
 - New games currently use an offline rectangle-partition generator.
 - `docs` contains architecture, decisions, game rules, user flows, roadmap, and AI-agent context.
 
-## GitHub Releases
+## Android Builds
 
-The enabled Android workflow at `.github/workflows/android_release.yml` uses Java 17, runs tests, builds a release APK, and uploads the APK as an artifact on pushes to `main`. It can also be started manually from the GitHub Actions page.
+Pushes to `main` run tests, build a release APK, and store it as a GitHub Actions artifact.
 
-To publish GitHub Releases later, extend the workflow by adding release creation after the APK build. Common options are `softprops/action-gh-release` for tag-triggered releases or the GitHub CLI for scripted release notes.
+To publish a GitHub Release with the APK attached, push a version tag such as `v1.0.0`. You can also start the workflow manually from GitHub Actions and enter a release tag. The workflow creates or updates the matching GitHub Release and attaches `EpicShikaku.apk`.
