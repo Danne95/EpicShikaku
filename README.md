@@ -8,6 +8,7 @@ Current version: `1.0.0`
 
 - Flutter stable, preferably Flutter 3.44.0 or newer
 - Android SDK configured for Flutter
+- Java 17 for Android release builds
 
 ## Setup
 
@@ -39,6 +40,6 @@ flutter build apk --release
 
 ## GitHub Releases
 
-The enabled Android workflow at `.github/workflows/android_release.yml` builds a release APK, runs tests, and uploads the APK as an artifact on pushes to `main`. It can also be started manually from the GitHub Actions page.
+The enabled Android workflow at `.github/workflows/android_release.yml` uses Java 17, runs tests, builds a release APK, and uploads the APK as an artifact on pushes to `main`. It can also be started manually from the GitHub Actions page.
 
 To publish GitHub Releases later, extend the workflow by adding release creation after the APK build. Common options are `softprops/action-gh-release` for tag-triggered releases or the GitHub CLI for scripted release notes.
