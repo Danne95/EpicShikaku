@@ -21,7 +21,10 @@ jobs:
           cache: true
 
       - name: Generate Android platform files when missing
-        run: flutter create --platforms=android .
+        run: |
+          if [ ! -f android/app/build.gradle ]; then
+            flutter create --platforms=android .
+          fi
 
       - name: Install dependencies
         run: flutter pub get
