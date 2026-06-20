@@ -40,6 +40,6 @@ flutter build apk --release
 
 ## Android Builds
 
-Pushes to `main` run tests, build a release APK, and store it as a GitHub Actions artifact.
+Every push to `main` runs tests, builds a release APK, uploads an Actions artifact, and updates the GitHub Release matching the version in `pubspec.yaml`.
 
-To publish a GitHub Release with the APK attached, push a version tag such as `v1.0.0`. You can also start the workflow manually from GitHub Actions and enter a release tag. The workflow creates or updates the matching GitHub Release and attaches `EpicShikaku.apk`.
+For the current version, pushes update release `v1.0.0` and replace its `EpicShikaku.apk` asset. Increase the version in `pubspec.yaml` when you want the next push to create a new release.
