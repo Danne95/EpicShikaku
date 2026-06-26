@@ -45,7 +45,7 @@ void main() {
       find.text('Generated Shikaku puzzles with adjustable board sizes.'),
       findsOneWidget,
     );
-    expect(find.text('Version 1.1.2'), findsOneWidget);
+    expect(find.text('Version 1.1.3'), findsOneWidget);
     expect(find.text('Made by EpicBrain'), findsOneWidget);
   });
 
