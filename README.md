@@ -43,3 +43,5 @@ flutter build apk --release
 Every push to `main` runs tests, builds a release APK, uploads an Actions artifact, and updates the GitHub Release matching the version in `pubspec.yaml`.
 
 For the current version, pushes update release `v1.0.0` and replace its `EpicShikaku.apk` asset. Increase the version in `pubspec.yaml` when you want the next push to create a new release.
+
+GitHub automatically shows `Source code (zip)` and `Source code (tar.gz)` links for every release tag. The workflow only publishes `EpicShikaku.apk` as the game download.
