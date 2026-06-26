@@ -7,6 +7,7 @@ class SettingsRepository {
 
   static const _darkModeKey = 'settings.dark_mode_enabled';
   static const _vibrationKey = 'settings.vibration_enabled';
+  static const _soundKey = 'settings.sound_enabled';
   static const _boardSizeKey = 'settings.board_size';
 
   /// Loads whether dark mode is enabled.
@@ -21,6 +22,13 @@ class SettingsRepository {
     final preferences = await SharedPreferences.getInstance();
 
     return preferences.getBool(_vibrationKey) ?? false;
+  }
+
+  /// Loads whether sound effects are enabled.
+  Future<bool> loadSoundEnabled() async {
+    final preferences = await SharedPreferences.getInstance();
+
+    return preferences.getBool(_soundKey) ?? true;
   }
 
   /// Loads the selected square board size.
@@ -40,6 +48,12 @@ class SettingsRepository {
   Future<void> saveVibrationEnabled({required bool isEnabled}) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setBool(_vibrationKey, isEnabled);
+  }
+
+  /// Saves whether sound effects are enabled.
+  Future<void> saveSoundEnabled({required bool isEnabled}) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool(_soundKey, isEnabled);
   }
 
   /// Saves the selected square board size.

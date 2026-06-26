@@ -52,8 +52,19 @@
 ## Settings Flow
 
 1. The player opens settings from the cog icon in the top app bar.
-2. The player toggles dark mode or vibration.
+2. The player toggles dark mode, vibration, or sound.
 3. The player can enter a square board size from 4 to 12 or adjust it with the minus and plus controls.
 4. Changing board size persists the value and starts a new generated puzzle.
 5. `SettingsController` updates immediately and persists values with shared preferences.
 6. The Material app rebuilds with the selected theme mode.
+
+## Direct APK Update Flow
+
+1. The player opens settings from the cog icon in the top app bar.
+2. The player taps Check for updates.
+3. `AppUpdateController` asks `AppUpdateService` to compare the installed Android version with the latest public GitHub release.
+4. The latest release must contain an accepted APK asset, either labeled `EpicShikaku.apk` or named `EpicShikaku.apk` / `app-release.apk`.
+5. If a newer version exists, the player can download the APK.
+6. After download, the player taps Install update.
+7. If Android has not granted install-from-this-source permission to EpicShikaku, the app opens the relevant Android settings screen.
+8. Once permission is available, the app hands the APK to Android's package installer and the player confirms the update.

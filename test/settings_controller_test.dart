@@ -10,7 +10,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  test('uses dark mode and disables vibration by default', () async {
+  test('uses dark mode, sound, and disables vibration by default', () async {
     final controller = SettingsController(
       repository: const SettingsRepository(),
     );
@@ -19,6 +19,7 @@ void main() {
 
     expect(controller.isDarkModeEnabled, isTrue);
     expect(controller.isVibrationEnabled, isFalse);
+    expect(controller.isSoundEnabled, isTrue);
     expect(controller.boardSize, PuzzleGenerationConstants.defaultBoardSize);
   });
 
@@ -30,6 +31,7 @@ void main() {
     await controller.loadSettings();
     await controller.setDarkModeEnabled(isEnabled: false);
     await controller.setVibrationEnabled(isEnabled: false);
+    await controller.setSoundEnabled(isEnabled: false);
     await controller.setBoardSize(boardSize: 8);
 
     final reloadedController = SettingsController(
@@ -39,6 +41,7 @@ void main() {
 
     expect(reloadedController.isDarkModeEnabled, isFalse);
     expect(reloadedController.isVibrationEnabled, isFalse);
+    expect(reloadedController.isSoundEnabled, isFalse);
     expect(reloadedController.boardSize, 8);
   });
 

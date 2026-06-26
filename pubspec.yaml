@@ -1,7 +1,7 @@
 name: shikaku_puzzle
 description: A clean offline Flutter Shikaku puzzle game for Android.
 publish_to: "none"
-version: 1.0.0
+version: 1.1.0+2
 
 environment:
   sdk: ^3.12.0

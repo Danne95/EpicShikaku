@@ -153,3 +153,31 @@ Confetti and an immediate New puzzle button make completion feel rewarding while
 ### Alternatives considered
 
 A modal completion dialog was used initially, but it added an unnecessary confirmation step before the next game.
+
+## 2026-06-26
+
+### Decision
+
+Support direct APK update checks from Settings using public GitHub Releases.
+
+### Reason
+
+The app is distributed directly as an APK for non-technical users who need a guided update path. Android does not allow silent self-updates for ordinary apps, so the app downloads the APK only after a user action and then hands installation to Android's package installer.
+
+### Alternatives considered
+
+Opening the GitHub release page in a browser was simpler and more store-friendly, but it would force users through GitHub, browser download, and file-manager steps. Google Play in-app updates were rejected for this distribution path because they require Play-backed distribution.
+
+## 2026-06-26
+
+### Decision
+
+Keep visible patch notes player-facing.
+
+### Reason
+
+Patch notes appear inside the app for customers and players. They should explain meaningful gameplay, settings, update, or usability changes without exposing technical implementation work, generic cleanup, or internal developer notes.
+
+### Alternatives considered
+
+Using patch notes as a full changelog was rejected because it would make the settings screen noisier and less useful for non-technical players.

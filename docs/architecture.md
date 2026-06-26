@@ -8,6 +8,8 @@ EpicShikaku uses a simple layered architecture designed for a small offline Flut
 
 `lib/app` contains the application shell, top-level widget, app-level settings state, routing entry point, and theme configuration.
 
+The direct APK update controller also lives in the app layer because it affects app distribution rather than puzzle gameplay.
+
 ### Core
 
 `lib/core` contains shared code that does not belong to one feature:
@@ -28,7 +30,7 @@ EpicShikaku uses a simple layered architecture designed for a small offline Flut
 
 ### Feature: Settings
 
-`lib/features/settings` owns the settings presentation. Settings state and persistence live under `lib/app` because theme, vibration, and board size are app-level concerns.
+`lib/features/settings` owns the settings presentation. Settings state and persistence live under `lib/app` because theme, vibration, sound, and board size are app-level concerns.
 
 ## Dependency Direction
 
@@ -40,7 +42,11 @@ Dependencies point inward:
 
 Settings use `settings presentation -> app settings controller -> app settings repository`.
 
+Direct APK updates use `settings presentation -> app update controller -> app update service -> GitHub Releases / Android package installer`.
+
 The domain layer does not depend on Flutter UI widgets or state management packages. This keeps puzzle rules testable and easy to reuse.
+
+Update checks are the only intentional network operation. They are user-initiated, read public GitHub Releases, and do not add accounts, analytics, or backend services.
 
 PuzzleGenerator lives in the puzzle domain layer. It creates a non-overlapping rectangle partition, keeps generated region areas between 2 and 12, and places one clue per rectangle. This ensures generated boards have at least one valid solution.
 
