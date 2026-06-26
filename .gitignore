@@ -22,6 +22,9 @@ android/.kotlin/
 android/app/debug/
 android/app/profile/
 android/app/release/
+android/app/*.jks
+android/app/*.keystore
+android/key.properties
 android/local.properties
 
 # Generated platform folders are intentionally ignored for this Android-first app.

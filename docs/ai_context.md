@@ -52,6 +52,7 @@ Dependency direction is `presentation -> application -> domain` and `data -> dom
 - Completion uses an in-screen confetti effect and a New puzzle button, not a modal dialog.
 - Accepted regions are outlined over the cell grid to distinguish adjacent groups with matching fill colors.
 - Direct APK updates are user-initiated from Settings, check public GitHub Releases, accept `EpicShikaku.apk` or `app-release.apk` release assets, and hand off installation to Android's package installer.
+- Public APK releases must be signed with the stable release keystore from GitHub Actions secrets. Debug-signed APKs are for local testing only and cannot be relied on for in-place updates.
 - Patch notes are customer-facing release notes. Include only changes players need to know about; keep technical, generic, internal, and implementation-only details out of the visible patch notes.
 
 ## Things To Avoid
@@ -63,3 +64,4 @@ Dependency direction is `presentation -> application -> domain` and `data -> dom
 - Do not create large files that mix unrelated responsibilities.
 - Do not add server-side puzzle generation, background network features, or a completion modal.
 - Do not use visible patch notes as developer notes or a technical changelog.
+- Do not commit Android keystores, key passwords, or signing property files.

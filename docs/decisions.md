@@ -181,3 +181,17 @@ Patch notes appear inside the app for customers and players. They should explain
 ### Alternatives considered
 
 Using patch notes as a full changelog was rejected because it would make the settings screen noisier and less useful for non-technical players.
+
+## 2026-06-26
+
+### Decision
+
+Sign public APK releases with one stable GitHub Actions release keystore.
+
+### Reason
+
+Android only installs an APK update over an existing app when both APKs share the same signing certificate and the new version code is higher. Debug signing is machine-specific and caused update installs to fail with Android's generic "App not installed" message.
+
+### Alternatives considered
+
+Continuing with debug signing was rejected because updates can fail across local and CI builds. Local-only release signing was rejected as the primary path because GitHub Actions publishes the public release APKs and should be the source of truth.
