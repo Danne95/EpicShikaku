@@ -1,5 +1,6 @@
 package com.epicbrain.epicshikaku
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -41,10 +42,10 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "getInstalledVersion" -> result.success(getInstalledVersion())
+                "getUpdateCacheDirectory" -> result.success(getUpdateCacheDirectory())
                 "canRequestPackageInstalls" -> result.success(canRequestPackageInstalls())
                 "openInstallPermissionSettings" -> {
-                    openInstallPermissionSettings()
-                    result.success(null)
+                    openInstallPermissionSettings(result)
                 }
                 "installApk" -> {
                     val apkPath = call.arguments as? String
@@ -113,8 +114,15 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun openInstallPermissionSettings() {
+    private fun getUpdateCacheDirectory(): String {
+        val updatesDirectory = File(cacheDir, "updates")
+        updatesDirectory.mkdirs()
+        return updatesDirectory.absolutePath
+    }
+
+    private fun openInstallPermissionSettings(result: MethodChannel.Result) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            result.success(null)
             return
         }
 
@@ -122,7 +130,16 @@ class MainActivity : FlutterActivity() {
             Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
             Uri.parse("package:$packageName"),
         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
+        try {
+            startActivity(intent)
+            result.success(null)
+        } catch (_: ActivityNotFoundException) {
+            result.error(
+                "install_permission_settings_unavailable",
+                "Could not open install permission settings.",
+                null,
+            )
+        }
     }
 
     private fun installApk(apkPath: String, result: MethodChannel.Result) {
@@ -136,17 +153,36 @@ class MainActivity : FlutterActivity() {
             return
         }
 
-        val apkUri = FileProvider.getUriForFile(
-            this,
-            "$packageName.update_file_provider",
-            apkFile,
-        )
-        val intent = Intent(Intent.ACTION_VIEW)
-            .setDataAndType(apkUri, "application/vnd.android.package-archive")
+        val apkUri = try {
+            FileProvider.getUriForFile(
+                this,
+                "$packageName.update_file_provider",
+                apkFile,
+            )
+        } catch (_: IllegalArgumentException) {
+            result.error(
+                "apk_uri_unavailable",
+                "Could not prepare the downloaded update.",
+                null,
+            )
+            return
+        }
+
+        val intent = Intent(Intent.ACTION_INSTALL_PACKAGE)
+            .setData(apkUri)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            .putExtra(Intent.EXTRA_RETURN_RESULT, false)
 
-        startActivity(intent)
-        result.success(null)
+        try {
+            startActivity(intent)
+            result.success(null)
+        } catch (_: ActivityNotFoundException) {
+            result.error(
+                "installer_unavailable",
+                "Could not open installer.",
+                null,
+            )
+        }
     }
 }

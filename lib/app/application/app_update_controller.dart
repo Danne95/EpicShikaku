@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:shikaku_puzzle/app/data/app_update_service.dart';
 
 /// User-visible state for the direct APK update flow.
@@ -72,6 +73,11 @@ class AppUpdateController extends ChangeNotifier {
       _setState(status: AppUpdateStatus.upToDate);
     } on AppUpdateException catch (error) {
       _setState(status: AppUpdateStatus.failed, errorMessage: error.message);
+    } on PlatformException catch (error) {
+      _setState(
+        status: AppUpdateStatus.failed,
+        errorMessage: _platformErrorMessage(error),
+      );
     } catch (_) {
       _setState(
         status: AppUpdateStatus.failed,
@@ -101,6 +107,11 @@ class AppUpdateController extends ChangeNotifier {
       );
     } on AppUpdateException catch (error) {
       _setState(status: AppUpdateStatus.failed, errorMessage: error.message);
+    } on PlatformException catch (error) {
+      _setState(
+        status: AppUpdateStatus.failed,
+        errorMessage: _platformErrorMessage(error),
+      );
     } catch (_) {
       _setState(
         status: AppUpdateStatus.failed,
@@ -129,6 +140,11 @@ class AppUpdateController extends ChangeNotifier {
       await _installDownloadedUpdate();
     } on AppUpdateException catch (error) {
       _setState(status: AppUpdateStatus.failed, errorMessage: error.message);
+    } on PlatformException catch (error) {
+      _setState(
+        status: AppUpdateStatus.failed,
+        errorMessage: _platformErrorMessage(error),
+      );
     } catch (_) {
       _setState(
         status: AppUpdateStatus.failed,
@@ -143,6 +159,11 @@ class AppUpdateController extends ChangeNotifier {
       await _installDownloadedUpdate();
     } on AppUpdateException catch (error) {
       _setState(status: AppUpdateStatus.failed, errorMessage: error.message);
+    } on PlatformException catch (error) {
+      _setState(
+        status: AppUpdateStatus.failed,
+        errorMessage: _platformErrorMessage(error),
+      );
     } catch (_) {
       _setState(
         status: AppUpdateStatus.failed,
@@ -181,5 +202,21 @@ class AppUpdateController extends ChangeNotifier {
     _message = message;
     _errorMessage = errorMessage;
     notifyListeners();
+  }
+
+  String _platformErrorMessage(PlatformException error) {
+    final message = error.message;
+    if (message != null && message.isNotEmpty) {
+      return message;
+    }
+
+    return switch (error.code) {
+      'apk_missing' => 'Downloaded update was not found.',
+      'installer_unavailable' => 'Could not open installer.',
+      'install_permission_settings_unavailable' =>
+        'Could not open install permission settings.',
+      'cache_directory_unavailable' => 'Could not prepare the update download.',
+      _ => 'Could not get the update.',
+    };
   }
 }

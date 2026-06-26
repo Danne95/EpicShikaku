@@ -3,7 +3,7 @@ class AppMetadata {
   const AppMetadata._();
 
   /// Human-readable app version.
-  static const versionLabel = '1.1.1';
+  static const versionLabel = '1.1.2';
 
   /// Player-facing patch notes for the current app version.
   ///
@@ -11,7 +11,11 @@ class AppMetadata {
   /// list because these notes are shown directly to users.
   static const patchNotes = [
     PatchNote(
-      title: 'Release 1.1.1',
+      title: 'Release 1.1.2',
+      changes: ['Fixed app updates after granting Android install permission.'],
+    ),
+    PatchNote(
+      title: 'Release 1.1.0',
       changes: [
         'Added a settings button to check for app updates.',
         'Made direct APK updates easier to start from inside the app.',

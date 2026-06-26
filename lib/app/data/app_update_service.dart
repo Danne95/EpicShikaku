@@ -221,7 +221,7 @@ class AppUpdateService {
 
   /// Downloads a release APK into app cache and returns its local path.
   Future<String> downloadReleaseApk(AppRelease release) async {
-    final updatesDirectory = Directory('${Directory.systemTemp.path}/updates');
+    final updatesDirectory = Directory(await getUpdateCacheDirectory());
     if (!updatesDirectory.existsSync()) {
       updatesDirectory.createSync(recursive: true);
     }
@@ -243,6 +243,18 @@ class AppUpdateService {
     }
 
     return apkFile.path;
+  }
+
+  /// Android cache directory exposed through the update FileProvider.
+  Future<String> getUpdateCacheDirectory() async {
+    final directory = await _channel.invokeMethod<String>(
+      'getUpdateCacheDirectory',
+    );
+    if (directory == null || directory.isEmpty) {
+      throw const AppUpdateException('Could not prepare the update download.');
+    }
+
+    return directory;
   }
 
   /// Whether Android currently allows this app to request package installs.
