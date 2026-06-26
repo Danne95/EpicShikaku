@@ -70,7 +70,7 @@ class _FakeAppUpdateService extends AppUpdateService {
     return AppUpdateCheckResult(
       isUpdateAvailable: true,
       release: AppRelease(
-        version: AppVersion.parse('v1.1.3'),
+        version: AppVersion.parse('v1.1.4'),
         downloadUri: Uri.parse('https://example.com/EpicShikaku.apk'),
         releaseNotes: 'Update improvements.',
       ),
